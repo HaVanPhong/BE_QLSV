@@ -97,13 +97,10 @@ module.exports.updateAccount= async(req, res)=>{
       b.lop= lop._id;
       let a= await Account.findOneAndUpdate({_id: req.params.id}, b).populate('lop');
       if(!!a){
-        let lop= await Lop.findOne({
-          tenLop: req.body.tenLop
-        })
         let lop1= await Lop.findOne({
           tenLop: a?.lop?.tenLop
         })
-        if(!!lop && !!lop1){
+        if(!!lop1 && req.body.tenLop!==a?.lop?.tenLop){
           await Lop.findOneAndUpdate({
             _id: lop._id
           },
