@@ -25,8 +25,15 @@ module.exports.getAdmin= async(req, res)=>{
 
 module.exports.createAdmin = async(req, res)=>{
   let body = req.body;  
-  a= await Admin.create(body);
-  return res.status(201).json(new successResponse(201, "Tạo admin thành công", a));
+  let ac= await Admin.findOne({
+    username: body.username
+  })
+
+  if(!ac){
+    let a= await Admin.create(body);
+    return res.status(201).json(new successResponse(201, "Tạo admin thành công", a));
+  }
+  return res.status(404).json(new errorResponse(404, "Tài khoản đã tồn tại"));
 }
 
 module.exports.deleteAdmin= async(req, res)=>{
