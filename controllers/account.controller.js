@@ -1,3 +1,4 @@
+const { response } = require("express")
 const Account = require("../models/account.model")
 const Lop = require("../models/lop.model")
 const errorResponse = require('../response/errorResponse')
@@ -87,34 +88,53 @@ module.exports.deleteAccount= async(req, res)=>{
 
 
 module.exports.updateAccount= async(req, res)=>{
-  let a= await Account.findOneAndUpdate({_id: req.params.id}, req.body).populate('lop');
-  if (!!a){
-    if(!!req.body?.tenLop&&a?.lop?.tenLop!==req.body?.tenLop){
-      let lop= await Lop.findOne({
-        tenLop: req.body.tenLop
-      })
-      if(!!lop)
-      await Lop.findOneAndUpdate({
-        _id: lop._id
-      },
-      {
-        soSV: +lop.soSV+1
-      })
-    //=======
-      let lop1= await Lop.findOne({
-        tenLop: a?.lop?.tenLop
-      })
-      if(!!lop1)
-      await Lop.findOneAndUpdate({
-        _id: lop1._id
-      },    
-      {
-        soSV: +lop1.soSV-1
-      })
+  if (!!req.body.tenLop){
+    let lop= await Lop.findOne({
+      tenLop: req.body.tenLop
+    })
+    if (!!lop){
+      let b= req.body;
+      b.lop= lop._id;
+      let a= await Account.findOneAndUpdate({_id: req.params.id}, b).populate('lop');
+      if(!!a){
+        let lop= await Lop.findOne({
+          tenLop: req.body.tenLop
+        })
+        let lop1= await Lop.findOne({
+          tenLop: a?.lop?.tenLop
+        })
+        if(!!lop && !!lop1){
+          await Lop.findOneAndUpdate({
+            _id: lop._id
+          },
+          {
+            soSV: +lop.soSV+1
+          })
+  
+          await Lop.findOneAndUpdate({
+            _id: lop1._id
+          },    
+          {
+            soSV: +lop1.soSV-1
+          })
+        } 
+        return res.status(200).json(new successResponse(200, "Sửa thành công", a));
+      }else {
+        return res.status(200).json(new errorResponse(404, "Không tìm thây account: "+ req.params.id))
+      }
+    }else {
+      return res.status(404).json(new errorResponse(404, "Tên lớp không tồn tại"));
     }
-    return res.status(200).json(new successResponse(200, "Sửa thành công", a));
+  }else {
+    let a= await Account.findOneAndUpdate({_id: req.params.id}, req.body).populate('lop');
+    if(!!a){
+      return res.status(200).json(new successResponse(200, "Sửa thành công", a));
+    }else {
+      return res.status(200).json(new errorResponse(404, `Không tìm thấy Account: ${req.params.id}`));
+    }
   }
-  return res.status(404).json(new errorResponse(404, "Không tìm thấy account: "+ req.params.id))
+
+  
 }
 
 // thêm acc thì số lượng của lớp tăng lên
