@@ -8,11 +8,6 @@ module.exports.login= async (req, res)=>{
   let acc= await Account.findOne({
     maSV: maSV,
     password: password
-  }).populate({
-    path: "lop",
-    populate: {
-      path: "tkb"
-    }
   });
   if (!!acc){
     return res.status(200).json(new successResponse(200, "Đăng nhập thành công", acc));
